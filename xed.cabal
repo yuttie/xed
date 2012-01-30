@@ -1,0 +1,21 @@
+Name:                xed
+Version:             0.1
+Synopsis:            Xtream Editor
+-- Description:         
+Homepage:            https://github.com/yuttie/xed
+License:             BSD3
+License-file:        LICENSE
+Author:              Yuta Taniguchi
+Maintainer:          yuta.taniguchi.y.t@gmail.com
+Copyright:           Copyright (C) 2011 Yuta Taniguchi
+Category:            Data
+Build-type:          Simple
+Extra-source-files:  README.markdown
+Cabal-version:       >=1.2
+
+
+Executable xed
+  Main-is:             Main.hs
+  Build-depends:       base >= 4 && < 5
+  Hs-source-dirs:      src
+  ghc-options:         -Wall
