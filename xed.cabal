@@ -16,6 +16,7 @@ Cabal-version:       >=1.2
 
 Executable xed
   Main-is:             Main.hs
-  Build-depends:       base >= 4 && < 5
+  Build-depends:       base >= 4 && < 5,
+                       editline
   Hs-source-dirs:      src
   ghc-options:         -Wall
