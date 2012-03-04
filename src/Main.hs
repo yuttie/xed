@@ -8,7 +8,7 @@ split :: (Char -> Bool) -> String -> [String]
 split _ [] = [[]]
 split p xs = case ys' of
                []   -> [ys]
-               z:zs -> ys : split p zs
+               _:zs -> ys : split p zs
   where
     ys  = takeWhile (not . p) xs
     ys' = dropWhile (not . p) xs
