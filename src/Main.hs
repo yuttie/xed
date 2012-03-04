@@ -13,6 +13,12 @@ split p xs = case ys' of
     ys  = takeWhile (not . p) xs
     ys' = dropWhile (not . p) xs
     
+parseCommandline :: String -> (String, [String])
+parseCommandline l = (cmd, args')
+  where
+    (cmd:args) = split (== ' ') l
+    args' = filter (not . null) args
+
 mainLoop :: [String] -> [IO (Maybe String)] -> IO ()
 mainLoop _  []     = return ()
 mainLoop xs (a:as) = do
@@ -29,7 +35,7 @@ mainLoop xs (a:as) = do
         let xs' = xs ++ ["cmd: " ++ cmd]
         mainLoop xs' as
       where
-        (cmd:args) = split (== ' ') $ init line
+        (cmd, args) = parseCommandline $ init line
 
 main :: IO ()
 main = do
