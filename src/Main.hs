@@ -4,6 +4,16 @@ import System.Environment
 import System.Console.Editline
 
 
+mainLoop :: [String] -> [IO (Maybe String)] -> IO ()
+mainLoop xs (a:as) = do
+  l <- a
+  case l of
+    Nothing   -> return ()
+    Just line -> do
+      let xs' = xs ++ ["cmd: " ++ (init line)]
+      print xs'
+      mainLoop xs' as
+
 main :: IO ()
 main = do
   progName <- getProgName
@@ -11,8 +21,5 @@ main = do
   setPrompt el (return "> ")
   setEditor el Vi
 
-  l <- elGets el
-  case l of
-    Nothing -> return ()
-    Just line -> do
-      putStrLn $ "cmd: " ++ show (init line)
+  let as = repeat $ elGets el
+  mainLoop [] as
