@@ -11,6 +11,8 @@ mainLoop xs (a:as) = do
   case l of
     Nothing -> return ()
     Just line
+      | line' == "quit" -> do
+        return ()
       | line' == ":show" -> do
         print xs
         mainLoop xs as
