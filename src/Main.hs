@@ -5,6 +5,7 @@ import System.Console.Editline
 
 
 mainLoop :: [String] -> [IO (Maybe String)] -> IO ()
+mainLoop _  []     = return ()
 mainLoop xs (a:as) = do
   l <- a
   case l of
