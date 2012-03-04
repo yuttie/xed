@@ -19,9 +19,9 @@ parseCommandline l = (cmd, args')
     (cmd:args) = split (== ' ') l
     args' = filter (not . null) args
 
-mainLoop :: [String] -> [IO (Maybe String)] -> IO ()
-mainLoop _  []     = return ()
-mainLoop xs (a:as) = do
+mainLoop :: (Maybe FilePath, [String]) -> [IO (Maybe String)] -> IO ()
+mainLoop _          []     = return ()
+mainLoop s@(fp, xs) (a:as) = do
   l <- a
   case l of
     Nothing -> return ()
@@ -29,11 +29,17 @@ mainLoop xs (a:as) = do
       | cmd == "quit" -> do
         return ()
       | cmd == "show" -> do
-        print xs
-        mainLoop xs as
+        putStrLn $ "file: " ++ show fp
+        putStrLn $ "history: " ++ show xs
+        mainLoop s as
+      | cmd == "file" -> do
+        let fp' = if null args
+                    then Nothing
+                    else Just $ head args
+        mainLoop (fp', xs) as
       | otherwise -> do
         let xs' = xs ++ ["cmd: " ++ cmd]
-        mainLoop xs' as
+        mainLoop (fp, xs') as
       where
         (cmd, args) = parseCommandline $ init line
 
@@ -45,4 +51,4 @@ main = do
   setEditor el Vi
 
   let as = repeat $ elGets el
-  mainLoop [] as
+  mainLoop (Nothing, []) as
