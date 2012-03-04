@@ -4,6 +4,15 @@ import System.Environment
 import System.Console.Editline
 
 
+split :: (Char -> Bool) -> String -> [String]
+split _ [] = [[]]
+split p xs = case ys' of
+               []   -> [ys]
+               z:zs -> ys : split p zs
+  where
+    ys  = takeWhile (not . p) xs
+    ys' = dropWhile (not . p) xs
+    
 mainLoop :: [String] -> [IO (Maybe String)] -> IO ()
 mainLoop _  []     = return ()
 mainLoop xs (a:as) = do
@@ -11,16 +20,16 @@ mainLoop xs (a:as) = do
   case l of
     Nothing -> return ()
     Just line
-      | line' == "quit" -> do
+      | cmd == "quit" -> do
         return ()
-      | line' == "show" -> do
+      | cmd == "show" -> do
         print xs
         mainLoop xs as
       | otherwise -> do
-        let xs' = xs ++ ["cmd: " ++ line']
+        let xs' = xs ++ ["cmd: " ++ cmd]
         mainLoop xs' as
       where
-        line' = init line
+        (cmd:args) = split (== ' ') $ init line
 
 main :: IO ()
 main = do
