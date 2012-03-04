@@ -1,5 +1,6 @@
 module Main (main) where
 
+import Control.Monad
 import System.Environment
 import System.Console.Editline
 
@@ -24,6 +25,16 @@ data Modifier u = Modifier String ([u] -> [u])
 instance Show (Modifier u) where
   show (Modifier n _) = n
 
+applyModifiers :: [String] -> [Modifier String] -> [String]
+applyModifiers ls []                  = ls
+applyModifiers ls (Modifier _ f : ms) = applyModifiers (f ls) ms
+
+runPipeline :: (Maybe FilePath, [Modifier String]) -> Either String (IO [String])
+runPipeline (Nothing, _)  = Left "Error: source file is not specified."
+runPipeline (Just fp, ms) = Right $ do
+  ls <- liftM lines $ readFile fp
+  return $ applyModifiers ls ms
+
 mainLoop :: (Maybe FilePath, [Modifier String]) -> [IO (Maybe String)] -> IO ()
 mainLoop _          []     = return ()
 mainLoop s@(fp, ms) (a:as) = do
@@ -42,6 +53,11 @@ mainLoop s@(fp, ms) (a:as) = do
                     then Nothing
                     else Just $ head args
         mainLoop (fp', ms) as
+      | cmd == "run" -> do
+        case runPipeline s of
+          Left  e  -> putStrLn e
+          Right ls -> putStr . unlines =<< ls
+        mainLoop s as
       | cmd == "take" -> do
         let n = read $ head args :: Int
         let ms' = ms ++ [Modifier ("take " ++ show n) (take n)]
