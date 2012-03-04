@@ -13,7 +13,7 @@ mainLoop xs (a:as) = do
     Just line
       | line' == "quit" -> do
         return ()
-      | line' == ":show" -> do
+      | line' == "show" -> do
         print xs
         mainLoop xs as
       | otherwise -> do
