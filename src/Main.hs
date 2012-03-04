@@ -9,11 +9,16 @@ mainLoop _  []     = return ()
 mainLoop xs (a:as) = do
   l <- a
   case l of
-    Nothing   -> return ()
-    Just line -> do
-      let xs' = xs ++ ["cmd: " ++ (init line)]
-      print xs'
-      mainLoop xs' as
+    Nothing -> return ()
+    Just line
+      | line' == ":show" -> do
+        print xs
+        mainLoop xs as
+      | otherwise -> do
+        let xs' = xs ++ ["cmd: " ++ line']
+        mainLoop xs' as
+      where
+        line' = init line
 
 main :: IO ()
 main = do
