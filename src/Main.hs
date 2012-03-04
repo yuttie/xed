@@ -42,8 +42,7 @@ mainLoop s@(fp, ms) (a:as) = do
   case l of
     Nothing -> return ()
     Just line
-      | cmd == "quit" -> do
-        return ()
+      | cmd == "quit" -> return ()
       | cmd == "show" -> do
         putStrLn $ "file: " ++ show fp
         putStrLn $ "history: " ++ show ms
