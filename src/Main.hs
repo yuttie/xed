@@ -19,9 +19,14 @@ parseCommandline l = (cmd, args')
     (cmd:args) = split (== ' ') l
     args' = filter (not . null) args
 
-mainLoop :: (Maybe FilePath, [String]) -> [IO (Maybe String)] -> IO ()
+data Modifier u = Modifier String ([u] -> [u])
+
+instance Show (Modifier u) where
+  show (Modifier n _) = n
+
+mainLoop :: (Maybe FilePath, [Modifier String]) -> [IO (Maybe String)] -> IO ()
 mainLoop _          []     = return ()
-mainLoop s@(fp, xs) (a:as) = do
+mainLoop s@(fp, ms) (a:as) = do
   l <- a
   case l of
     Nothing -> return ()
@@ -30,16 +35,24 @@ mainLoop s@(fp, xs) (a:as) = do
         return ()
       | cmd == "show" -> do
         putStrLn $ "file: " ++ show fp
-        putStrLn $ "history: " ++ show xs
+        putStrLn $ "history: " ++ show ms
         mainLoop s as
       | cmd == "file" -> do
         let fp' = if null args
                     then Nothing
                     else Just $ head args
-        mainLoop (fp', xs) as
+        mainLoop (fp', ms) as
+      | cmd == "take" -> do
+        let n = read $ head args :: Int
+        let ms' = ms ++ [Modifier ("take " ++ show n) (take n)]
+        mainLoop (fp, ms') as
+      | cmd == "drop" -> do
+        let n = read $ head args :: Int
+        let ms' = ms ++ [Modifier ("drop " ++ show n) (drop n)]
+        mainLoop (fp, ms') as
       | otherwise -> do
-        let xs' = xs ++ ["cmd: " ++ cmd]
-        mainLoop (fp, xs') as
+        putStrLn $ "Unknown command: " ++ cmd
+        mainLoop s as
       where
         (cmd, args) = parseCommandline $ init line
 
