@@ -1,8 +1,8 @@
 module Main (main) where
 
 import Control.Monad
-import System.Environment
-import System.Console.Editline
+import Control.Monad.Trans
+import System.Console.Haskeline
 
 
 split :: (Char -> Bool) -> String -> [String]
@@ -35,48 +35,40 @@ runPipeline (Just fp, ms) = Right $ do
   ls <- liftM lines $ readFile fp
   return $ applyModifiers ls ms
 
-mainLoop :: (Maybe FilePath, [Modifier String]) -> [IO (Maybe String)] -> IO ()
-mainLoop _          []     = return ()
-mainLoop s@(fp, ms) (a:as) = do
-  l <- a
+mainLoop :: (Maybe FilePath, [Modifier String]) -> InputT IO ()
+mainLoop s@(fp, ms) = do
+  l <- getInputLine "> "
   case l of
     Nothing -> return ()
     Just line
       | cmd == "quit" -> return ()
       | cmd == "show" -> do
-        putStrLn $ "file: " ++ show fp
-        putStrLn $ "history: " ++ show ms
-        mainLoop s as
+        liftIO $ putStrLn $ "file: " ++ show fp
+        liftIO $ putStrLn $ "history: " ++ show ms
+        mainLoop s
       | cmd == "file" -> do
         let fp' = if null args
                     then Nothing
                     else Just $ head args
-        mainLoop (fp', ms) as
+        mainLoop (fp', ms)
       | cmd == "run" -> do
         case runPipeline s of
-          Left  e  -> putStrLn e
-          Right ls -> putStr . unlines =<< ls
-        mainLoop s as
+          Left  e  -> liftIO $ putStrLn e
+          Right ls -> liftIO $ putStr . unlines =<< ls
+        mainLoop s
       | cmd == "take" -> do
         let n = read $ head args :: Int
         let ms' = ms ++ [Modifier ("take " ++ show n) (take n)]
-        mainLoop (fp, ms') as
+        mainLoop (fp, ms')
       | cmd == "drop" -> do
         let n = read $ head args :: Int
         let ms' = ms ++ [Modifier ("drop " ++ show n) (drop n)]
-        mainLoop (fp, ms') as
+        mainLoop (fp, ms')
       | otherwise -> do
-        putStrLn $ "Unknown command: " ++ cmd
-        mainLoop s as
+        liftIO $ putStrLn $ "Unknown command: " ++ cmd
+        mainLoop s
       where
-        (cmd, args) = parseCommandline $ init line
+        (cmd, args) = parseCommandline line
 
 main :: IO ()
-main = do
-  progName <- getProgName
-  el <- elInit progName
-  setPrompt el (return "> ")
-  setEditor el Vi
-
-  let as = repeat $ elGets el
-  mainLoop (Nothing, []) as
+main = runInputT defaultSettings $ mainLoop (Nothing, [])
