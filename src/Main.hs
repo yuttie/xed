@@ -70,7 +70,7 @@ nestLoop name ms = do
     Just line
       | cmd == "quit" -> return ms
       | cmd == "show" -> do
-          liftIO $ putStrLn $ "history: " ++ show ms
+          liftIO $ putStrLn $ "pipeline: " ++ show ms
           nestLoop name ms
       | cmd == "take" -> do
           let n = read $ head args :: Int
@@ -95,7 +95,7 @@ mainLoop s@(fp, ms) = do
       | cmd == "quit" -> return ()
       | cmd == "show" -> do
           liftIO $ putStrLn $ "file: " ++ show fp
-          liftIO $ putStrLn $ "history: " ++ show ms
+          liftIO $ putStrLn $ "pipeline: " ++ show ms
           mainLoop s
       | cmd == "file" -> do
           let fp' = if null args
