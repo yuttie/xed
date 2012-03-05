@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleInstances, TypeSynonymInstances #-}
 module Main (main) where
 
-import Control.Monad
 import Control.Monad.Trans
 import System.Console.Haskeline
 
@@ -55,12 +54,12 @@ applyModifiers :: StreamType u => Stream u -> [Modifier u] -> Stream u
 applyModifiers s []                  = s
 applyModifiers s (Modifier _ f : ms) = applyModifiers (f s) ms
 
-runPipeline :: (Maybe FilePath, [Modifier String])
-            -> Either String (IO (Stream String))
+runPipeline :: (Maybe FilePath, [Modifier Char])
+            -> Either String (IO (Stream Char))
 runPipeline (Nothing, _)  = Left "Error: source file is not specified."
 runPipeline (Just fp, ms) = Right $ do
-  ls <- liftM lines $ readFile fp
-  return $ applyModifiers (Stream ls) ms
+  cs <- readFile fp
+  return $ applyModifiers (Stream cs) ms
 
 nestLoop :: StreamType u => String -> [Modifier u] -> InputT IO [Modifier u]
 nestLoop name ms = do
@@ -86,7 +85,7 @@ nestLoop name ms = do
       where
         (cmd, args) = parseCommandline line
 
-mainLoop :: (Maybe FilePath, [Modifier String]) -> InputT IO ()
+mainLoop :: (Maybe FilePath, [Modifier Char]) -> InputT IO ()
 mainLoop s@(fp, ms) = do
   l <- getInputLine "> "
   case l of
@@ -105,13 +104,19 @@ mainLoop s@(fp, ms) = do
       | cmd == "run" -> do
           case runPipeline s of
             Left  e   -> liftIO $ putStrLn e
-            Right mls -> liftIO $ do
-              Stream ls <- mls
-              putStr $ unlines ls
+            Right mcs -> liftIO $ do
+              Stream cs <- mcs
+              putStr cs
           mainLoop s
       | cmd == "chars" -> do
           innerPipeline <- nestLoop "chars" [] :: InputT IO [Modifier Char]
           let ms' = ms ++ [encapsulate "chars" innerPipeline]
+          if null innerPipeline
+            then mainLoop s
+            else mainLoop (fp, ms')
+      | cmd == "lines" -> do
+          innerPipeline <- nestLoop "lines" [] :: InputT IO [Modifier String]
+          let ms' = ms ++ [encapsulate "lines" innerPipeline]
           if null innerPipeline
             then mainLoop s
             else mainLoop (fp, ms')
