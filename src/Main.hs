@@ -70,19 +70,19 @@ nestLoop name ms = do
     Just line
       | cmd == "quit" -> return ms
       | cmd == "show" -> do
-        liftIO $ putStrLn $ "history: " ++ show ms
-        nestLoop name ms
+          liftIO $ putStrLn $ "history: " ++ show ms
+          nestLoop name ms
       | cmd == "take" -> do
-        let n = read $ head args :: Int
-        let ms' = ms ++ [Modifier ("take " ++ show n) (mapStream $ take n)]
-        nestLoop name ms'
+          let n = read $ head args :: Int
+          let ms' = ms ++ [Modifier ("take " ++ show n) (mapStream $ take n)]
+          nestLoop name ms'
       | cmd == "drop" -> do
-        let n = read $ head args :: Int
-        let ms' = ms ++ [Modifier ("drop " ++ show n) (mapStream $ drop n)]
-        nestLoop name ms'
+          let n = read $ head args :: Int
+          let ms' = ms ++ [Modifier ("drop " ++ show n) (mapStream $ drop n)]
+          nestLoop name ms'
       | otherwise -> do
-        liftIO $ putStrLn $ "Unknown command: " ++ cmd
-        nestLoop name ms
+          liftIO $ putStrLn $ "Unknown command: " ++ cmd
+          nestLoop name ms
       where
         (cmd, args) = parseCommandline line
 
@@ -94,38 +94,38 @@ mainLoop s@(fp, ms) = do
     Just line
       | cmd == "quit" -> return ()
       | cmd == "show" -> do
-        liftIO $ putStrLn $ "file: " ++ show fp
-        liftIO $ putStrLn $ "history: " ++ show ms
-        mainLoop s
+          liftIO $ putStrLn $ "file: " ++ show fp
+          liftIO $ putStrLn $ "history: " ++ show ms
+          mainLoop s
       | cmd == "file" -> do
-        let fp' = if null args
-                    then Nothing
-                    else Just $ head args
-        mainLoop (fp', ms)
+          let fp' = if null args
+                      then Nothing
+                      else Just $ head args
+          mainLoop (fp', ms)
       | cmd == "run" -> do
-        case runPipeline s of
-          Left  e   -> liftIO $ putStrLn e
-          Right mls -> liftIO $ do
-            Stream ls <- mls
-            putStr $ unlines ls
-        mainLoop s
+          case runPipeline s of
+            Left  e   -> liftIO $ putStrLn e
+            Right mls -> liftIO $ do
+              Stream ls <- mls
+              putStr $ unlines ls
+          mainLoop s
       | cmd == "chars" -> do
-        innerPipeline <- nestLoop "chars" [] :: InputT IO [Modifier Char]
-        let ms' = ms ++ [encapsulate "chars" innerPipeline]
-        if null innerPipeline
-          then mainLoop s
-          else mainLoop (fp, ms')
+          innerPipeline <- nestLoop "chars" [] :: InputT IO [Modifier Char]
+          let ms' = ms ++ [encapsulate "chars" innerPipeline]
+          if null innerPipeline
+            then mainLoop s
+            else mainLoop (fp, ms')
       | cmd == "take" -> do
-        let n = read $ head args :: Int
-        let ms' = ms ++ [Modifier ("take " ++ show n) (mapStream $ take n)]
-        mainLoop (fp, ms')
+          let n = read $ head args :: Int
+          let ms' = ms ++ [Modifier ("take " ++ show n) (mapStream $ take n)]
+          mainLoop (fp, ms')
       | cmd == "drop" -> do
-        let n = read $ head args :: Int
-        let ms' = ms ++ [Modifier ("drop " ++ show n) (mapStream $ drop n)]
-        mainLoop (fp, ms')
+          let n = read $ head args :: Int
+          let ms' = ms ++ [Modifier ("drop " ++ show n) (mapStream $ drop n)]
+          mainLoop (fp, ms')
       | otherwise -> do
-        liftIO $ putStrLn $ "Unknown command: " ++ cmd
-        mainLoop s
+          liftIO $ putStrLn $ "Unknown command: " ++ cmd
+          mainLoop s
       where
         (cmd, args) = parseCommandline line
 
